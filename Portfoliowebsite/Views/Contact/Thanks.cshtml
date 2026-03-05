@@ -1,11 +1,14 @@
-﻿@{
+﻿@model Portfoliowebsite.Models.ContactViewModel
+
+@{
     ViewData["Title"] = "Bedankt";
 }
 
 <h1>Bedankt!</h1>
 
-<p>Bedankt, @Html.Raw(TempData["ThanksName"]). We nemen contact op via @Html.Raw(TempData["ThanksEmail"]).</p>
+<p>Bedankt, @Model.Name. We nemen contact op via @Model.Email.</p>
+<p>Je onderwerp: @Model.Subject</p>
 <p>Je bericht:</p>
-<div class="message-preview">@Html.Raw(TempData["ThanksMessage"])</div>
+<div class="message-preview">@Model.Message</div>
 
-<a href="/contact" role="button">Terug naar formulier</a>
+<a href="/contact">Terug naar formulier</a>

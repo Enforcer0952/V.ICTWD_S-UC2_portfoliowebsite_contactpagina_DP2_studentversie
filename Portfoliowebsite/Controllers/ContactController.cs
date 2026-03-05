@@ -1,26 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Portfoliowebsite.Models;
 using Portfoliowebsite.Services;
 
 namespace Portfoliowebsite.Controllers
 {
     public class ContactController : Controller
     {
-
         private readonly IEmailSender _email;
         public ContactController(IEmailSender email) => _email = email;
 
         public IActionResult Index() => View();
 
         [HttpPost]
-        public async Task<IActionResult> Index(string Name, string Email, string Subject, string Message)
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("ContactFormLimit")]
+        public async Task<IActionResult> Index(ContactViewModel model)
         {
-            await _email.SendAsync(Name, Email, Subject, Message);
+            if (!string.IsNullOrWhiteSpace(model.website) || !ModelState.IsValid)
+            {
+                return View(model);
+            }
 
-            TempData["ThanksName"] = Name;
-            TempData["ThanksEmail"] = Email;
-            TempData["ThanksMessage"] = Message;
+            await _email.SendAsync(model.Name, model.Email, model.Subject ?? string.Empty, model.Message);
 
-            return RedirectToAction(nameof(Thanks));
+            return View("Thanks", model);
         }
 
         public IActionResult Thanks()

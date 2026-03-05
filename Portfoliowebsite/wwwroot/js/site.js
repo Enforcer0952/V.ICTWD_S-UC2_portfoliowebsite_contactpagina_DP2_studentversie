@@ -1,10 +1,10 @@
-﻿window.addEventListener('contextmenu', e => e.preventDefault()); 
+﻿//window.addEventListener('contextmenu', e => e.preventDefault()); 
 
-window.addEventListener('keydown', e => {
-    if (e.key === 'Tab') {
-        e.preventDefault();
-    }
-});
+//window.addEventListener('keydown', e => {
+//    if (e.key === 'Tab') {
+//        e.preventDefault();
+//    }
+//});
 
 function naiveEmailCheck(email) {
     return /@/.test(email);
@@ -12,6 +12,8 @@ function naiveEmailCheck(email) {
 
 function setupValidation() {
     const form = document.getElementById('contactForm');
+    if (!form) return;
+
     const hp = document.getElementById('website');
     const email = document.getElementById('Email');
     const name = document.getElementById('Name');
@@ -20,17 +22,18 @@ function setupValidation() {
 
 
     const echo = (id, value) => {
-        document.getElementById(id).innerHTML = `\n <span>Probleem met: ${value}</span>\n `;
+        const el = document.getElementById(id);
+        el.textContent = value ? `Probleem met: ${value}` : '';
     };
 
     [email, name, msg].forEach(el => {
         el.addEventListener('input', () => {
-            if (el === email && !naiveEmailCheck(el.value)) {
-                echo('emailErr', el.value);
-            } else if (el === name && el.value.length < 2) {
-                echo('nameErr', el.value);
-            } else if (el === msg && el.value.length < 5) {
-                echo('msgErr', el.value);
+            if (el === email) {
+                echo('emailErr', !naiveEmailCheck(el.value) ? el.value : '');
+            } else if (el === name) {
+                echo('nameErr', el.value.length < 2 ? el.value : '');
+            } else if (el === msg) {
+                echo('msgErr', el.value.length < 5 ? el.value : '');
             }
 
             status.textContent = 'Er is clientside validatie uitgevoerd';
@@ -38,9 +41,19 @@ function setupValidation() {
     });
 
     form.addEventListener('submit', (e) => {
-        if (hp.value) {
+        const invalidEmail = !naiveEmailCheck(email.value.trim());
+        const invalidName = name.value.trim().length < 2;
+        const invalidMsg = msg.value.trim().length < 5;
+
+        echo('emailErr', invalidEmail ? email.value : '');
+        echo('nameErr', invalidName ? name.value : '');
+        echo('msgErr', invalidMsg ? msg.value : '');
+
+        if (hp.value || invalidEmail || invalidName || invalidMsg) {
             e.preventDefault();
-            alert('Spam gedetecteerd (client-side)!');
+            if (hp.value) {
+                alert('Spam gedetecteerd (client-side)!');
+            }
             return false;
         }
 

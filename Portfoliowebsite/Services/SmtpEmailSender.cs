@@ -5,19 +5,21 @@ namespace Portfoliowebsite.Services
 {
     public class SmtpEmailSender : IEmailSender
     {
+        private readonly IConfiguration _config;
+
+        public SmtpEmailSender(IConfiguration config) => _config = config;
+
         public async Task SendAsync(string Name, string Email, string Subject, string Message)
         {
-            var smtp = new SmtpClient("smtp.mailtrap.io", 2525)
+            SmtpClient smtp = new SmtpClient(_config["Smtp:Host"], int.Parse(_config["Smtp:Port"]!))
             {
-                EnableSsl = false,
-                Credentials = new NetworkCredential("", "") // TODO: vervang met je eigen mailtrap credentials
+                EnableSsl = bool.Parse(_config["Smtp:EnableSsl"]!),
+                Credentials = new NetworkCredential(_config["Smtp:Username"], _config["Smtp:Password"])
             };
 
-            var mail = new MailMessage();
-            mail.From = new MailAddress("noreply@example.com", "Website");
-
-            mail.To.Add("contact@example.com");
-
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress(_config["Smtp:FromAddress"]!, _config["Smtp:FromName"]);
+            mail.To.Add(_config["Smtp:ToAddress"]!);
             mail.Subject = $"Contact: {Subject}";
             mail.Body = $"Naam: {Name}\nEmail: {Email}\nBericht:\n{Message}";
 

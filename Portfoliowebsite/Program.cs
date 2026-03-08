@@ -15,15 +15,19 @@ builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("ContactFormLimit", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
+    {
+        string userIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(userIp, _ =>
+        {
+            return new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 3,
                 Window = TimeSpan.FromMinutes(1),
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
-            }));
+            };
+        });
+    });
 });
 
 WebApplication app = builder.Build();
